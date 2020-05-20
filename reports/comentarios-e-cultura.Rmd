@@ -6,11 +6,13 @@ output:
 theme: sandstone
 ---
 
+#### Matheus Soares de Lacerda
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(here)
 library(viridis)
-source(here::here("code/lib.R"))
+source(here::here("code/import_data.R"))
 theme_set(theme_bw())
 
 knitr::opts_chunk$set(tidy = FALSE,
@@ -36,6 +38,13 @@ dados = read_csv(
 glimpse(dados)
 ```
 
+```{r}
+
+so_data <- filter(dados, site ==  'StackOverflow')
+su_data <- filter(dados, site ==  'SuperUser')
+```
+
+
 Estamos interessados na relação entre quanto as pessoas de diferentes países comentam em questões dos outros. A proporção das pessoas do país que comentou nas questões de outros está medido na variável `comentaram_prop`. 
 
 Considerando essa variável, queremos examinar a relação entre ela e o quão hierárquicas são as relações em um país (`PDI`). Queremos também levar em conta o quanto as pessoas daquele país têm acesso à Internet (`Internet`) e qual o tamanho da base de dados que detectamos daquele país (`usuarios`). 
@@ -44,11 +53,146 @@ Considerando essa variável, queremos examinar a relação entre ela e o quão h
 
 Faça uma visualização que usa os princípios de eficácia no projeto de visualizações para facilitar as comparações que você acha que são as mais importantes para entendermos esse contexto. 
 
+    Levando em consideração o index `PDI` e a taxa de comentários, podemos analisar a correlação entre 
+    uma sociedade hierarquica e a proporção de comentários, junto a quantidade de usuário e a taxa de
+    acesso a internet. É possível observar na visualização abaixo uma tendencia quanto maior a proporção de
+    usuários que comentaram nos sites, menor é o PDI, ou seja, nas sociedades ondem os usuários mais
+    comentam nos sites, as pessoas buscam a distribuição de poder.
+    
+
+
+```{r fig.height = 5, fig.width = 10}
+dados %>% 
+    select(comentaram_prop, PDI, Internet, usuarios) %>%
+    ggplot(aes(x = comentaram_prop,y = PDI,size = Internet, color = log10(usuarios))) +
+    geom_point(alpha = 0.5) +
+    theme(plot.title = element_text(size = 7, face = "bold")) +
+    geom_smooth(method='lm', formula= y~x, size=1, se=FALSE) + 
+    labs(
+    title = "Relação de Usuários x Usuários que comentam x PDI x Acesso a Internet",y = "PDI",x = "Proporção de Comentários") +
+    theme_bw() + 
+    scale_color_continuous(high = "#2C3E50", low = "#9BAEC3")
+
+```
+
+
 ## Outras formas de ver
 
 Em seguida, faça 5 visualizações que usem as mesmas variáveis e também pontos, mas que sejam **menos eficazes** que a que você escolheu acima. 
+
+    Na visualização abaixo a escala de cor que representa a quantidade de usuários na base, possui um
+    espectro muito pequeno afetando a capacidade de distinguir de forma clara à diferença entre valores
+
+```{r fig.height = 5, fig.width = 10}
+dados %>% 
+    select(comentaram_prop, PDI, Internet, usuarios) %>%
+    ggplot(aes(x = comentaram_prop,y = PDI,size = Internet, color = log10(usuarios))) +
+    geom_point(alpha = 0.7) +
+    theme(plot.title = element_text(size = 10, face = "bold")) +
+    labs(
+    title = "Relação de Usuários x Usuários que comentam x PDI x Acesso a Internet",y = "PDI",x = "Proporção de Comentários") +
+    theme_bw() + 
+    scale_color_continuous(high = "#9BAEC3", low = "#9BAEC1")
+```
+
+
+    A utilização de um `alfa` com valor baixo pode esconder informações importantes e deixar a visualização
+    pobre de recursos visuais, forçando o leitor a realizar um maior esforço para captar e entender dados singulares.
+
+
+```{r fig.height = 5, fig.width = 10}
+dados %>% 
+    select(comentaram_prop, PDI, Internet, usuarios) %>%
+    ggplot(aes(x = comentaram_prop,y = PDI,size = Internet, color = log10(usuarios))) +
+    geom_point(alpha = 0.1) +
+    theme(plot.title = element_text(size = 1, face = "bold")) +
+    labs(
+    title = "Relação de Usuários x Usuários que comentam x PDI x Acesso a Internet",y = "PDI",x = "Proporção de Comentários") +
+    theme_bw() + 
+    scale_color_continuous(high = "#2C3E50", low = "#9BAEC3")
+```
+
+
+    Na visualização abaixo foi removido a escala logarítmica da quantidade de usuários das bases, porém
+    devido a variação de dados ser bastante significativa, a interpretação pode ser degradada pois quando é realizado uma comparação entre a legenda e as figuras presentes na visualização a uma mínima diferença entre a área e valores que a figura representa.
+
+```{r fig.height = 5, fig.width = 10}
+dados %>% 
+    select(comentaram_prop, PDI, Internet, usuarios) %>%
+    ggplot(aes(x = comentaram_prop,y = PDI,size = Internet, color = usuarios)) +
+    geom_point(alpha = 0.7) +
+    theme(plot.title = element_text(size = 7, face = "bold")) +
+    labs(
+    title = "Relação de Usuários x Usuários que comentam x PDI x Acesso a Internet",y = "PDI",x = "Proporção de Comentários") +
+    theme_bw() + 
+    scale_color_continuous(high = "#2C3E50", low = "#9BAEC3")
+```
+
+
+    Utilizar recursos de visualização que não se encaixem com os dados e a análise requerida é capaz de
+    fornecer uma visualização confusa, onde não é possível extrair informações relevantes
+
+```{r fig.height = 5, fig.width = 10}
+dados %>% 
+    select(comentaram_prop, PDI, Internet, usuarios) %>%
+    ggplot(aes(x = comentaram_prop,y = PDI,size = Internet, color = log10(usuarios))) +
+    geom_line() +
+    theme(plot.title = element_text(size = 1, face = "bold")) +
+    labs(
+    title = "Relação de Usuários x Usuários que comentam x PDI x Acesso a Internet",y = "PDI",x = "Proporção de Comentários") +
+    theme_bw() + 
+    scale_color_continuous(high = "#2C3E50", low = "#9BAEC3")
+```
+
+    Utilizar formas que não representem claramente o dado explicitado, como por exemplo a cruz, pode causar
+    confusão e provocar uma visualização caótica, a forma apresentada na visualização abaixo não 
+    expõe uma área onde podemos figurar a quantidade que o dado possui.
+
+```{r fig.height = 5, fig.width = 10}
+dados %>% 
+    select(comentaram_prop, PDI, Internet, usuarios) %>%
+    ggplot(aes(x = comentaram_prop,y = PDI,size = Internet, color = usuarios)) +
+    geom_point(shape=3) +
+    theme(plot.title = element_text(size = 7, face = "bold")) +
+    labs(
+    title = "Relação de Usuários x Usuários que comentam x PDI x Acesso a Internet",y = "PDI",x = "Proporção de Comentários") +
+    theme_bw() + 
+    scale_color_continuous(high = "#2C3E50", low = "#9BAEC3")
+```
 
 ## Bônus
 
 Inclua o continente dos países (`six_regions`) na visualização.
 
+    Para adicionar as regiões, a visualização foi subdividida em visualizações menores para cada região, diminuindo também a escala dos pontos para melhor demonstrar a dispersão dos dados. 
+    
+    Na visualização é possível perceber que em algumas regiões, como por exemplo a Ásia-Pacifico, a qual possui um elevado PDI e alto acesso a internet, há uma maior dispersão dos dados, apesar de ser uma conclusão que necessita de mais profundidade, podemos observar que esta região possui uma pluralidade cultural, onde possívelmente existem paises com estruturas de sociedade bem distintas, onde alguns aceitam de forma absoluta a hierarquia e outros tendem a igualar os poderes pela entre a estrutura da população 
+
+```{r fig.height = 5, fig.width = 10}
+
+renamed_data <- dados
+renamed_data$six_regions[renamed_data$six_regions == "america"] = "America"
+renamed_data$six_regions[renamed_data$six_regions == "east_asia_pacific"] = "Ásia-Pacífico"
+renamed_data$six_regions[renamed_data$six_regions == "europe_central_asia"] = "Europa Central & Ásia"
+renamed_data$six_regions[renamed_data$six_regions == "middle_east_north_africa"] = "Oriente Médio & No. da África"
+renamed_data$six_regions[renamed_data$six_regions == "south_asia"] = "Sul da Ásia"
+renamed_data$six_regions[renamed_data$six_regions == "sub_saharan_africa"] = "África subsariana"
+
+renamed_data %>% 
+    filter(!is.na(six_regions)) %>%
+    select(comentaram_prop, PDI, Internet, usuarios, six_regions) %>%
+    ggplot(aes(x = comentaram_prop,y = PDI,size = Internet, color = log10(usuarios))) +
+    geom_point(alpha = 0.5, shape=20) +
+    geom_smooth(method='lm', formula= y~x, size=1, se=FALSE) +
+    facet_wrap(~ six_regions) +
+    theme(plot.title = element_text(size = 10, face = "bold")) +
+    labs(
+    title = "Relação de Usuários x Usuários que comentam x PDI x Acesso a Internet",y = "PDI",x = "Proporção de Comentários") +
+    theme_bw() + 
+    scale_color_continuous(high = "#2C3E50", low = "#9BAEC3")
+
+```
+
+
+
+``` 
